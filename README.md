@@ -1,62 +1,58 @@
-# nvim_config
+# Neovim configuration
 
-Modular Neovim config built around `lazy.nvim`. Fast, lazy-loaded, easy to extend.
-
-Standard stuff: LSP via `mason + lspconfig`, completion via `blink.cmp`, treesitter, formatting via `conform.nvim`, linting via `nvim-lint`, git, DAP, fzf-lua, neo-tree.
-
-## Main thing: local AI harness
-
-Cursor-like inline completion with zero cloud dependency.
-
-How it works:
-
-- `minuet-ai.nvim` provides ghost-text / virtualtext suggestions.
-- Backend is `llama.cpp` via OpenAI-compatible API (`http://localhost:8080/v1`).
-- Config is provider-agnostic: `lua/config/defaults.lua` -> `lua/adapters/ai.lua` -> `lua/features/ai/provider.lua` -> `lua/features/ai/minuet.lua`. Swap backend (Ollama, LM Studio, vLLM) by changing endpoint/model.
-- `scripts/nvim-ai` starts `llama-server` with your `.gguf`, waits for `/health`, opens Neovim with `NVIM_AI=1`, then cleans up on exit. The AI plugin (`lua/plugins/ai.lua`) only loads when `NVIM_AI=1`.
-
-Default model is Qwen2.5-Coder instruct (set via `LLAMA_MODEL` env or `ai.model` in config), context ~32k, temp 0.2.
-
-Keymaps (ghost text):
-
-- `<A-A>` accept full, `<A-a>` accept line, `<A-z>` accept n lines
-- `<A-]>` / `<A-[>` next / prev, `<A-e>` dismiss
+A small Neovim setup for Python and C++ that runs alongside tmux without key clashes.
 
 ## Requirements
 
-- Neovim 0.11+
-- `ripgrep`, `fd`, `git`
-- For AI mode: built `llama-server` from `llama.cpp` + a `.gguf` instruct/coder model
+- Neovim 0.11 or newer (tested on 0.11.7 and 0.12.5)
+- `git`, `rg`, `fzf`
+- Optional: `basedpyright`, `ruff`, `clangd`, `clang-format`, `stylua`, `shfmt`, `jq`
+- A true-colour terminal (kitty) for the start screen
 
-## Usage
+## Install
 
 ```sh
-# normal
-nvim
-
-# with local AI
-./scripts/nvim-ai
-# or
-LLAMA_MODEL=/path/to/model.gguf LLAMA_PORT=8080 ./scripts/nvim-ai .
+git clone <this repo> ~/.config/nvim
+nvim                                   # lazy.nvim installs the locked plugins
+:TSInstall python cpp c lua bash json markdown markdown_inline
 ```
 
-Override settings in `lua/config/user.lua`, e.g.:
+Add this line to `~/.tmux.conf`:
 
-```lua
-return {
-  ai = { endpoint = "http://localhost:11434/v1" },
-}
+```tmux
+source-file -q ~/.config/nvim/tmux/nvim.conf
 ```
+
+## Keys
+
+tmux uses `Ctrl-b` + key. Neovim uses `Space` + the same key for the same action.
+
+- [docs/nvim.md](docs/nvim.md): Neovim keys, opened with `Space ?`; `Space K` searches all keys
+- [docs/tmux.md](docs/tmux.md): tmux keys, opened with `Prefix ?` (or `Tab` in the Neovim notes)
+
+Every global Neovim mapping is defined in [lua/config/keymaps.lua](lua/config/keymaps.lua).
 
 ## Layout
 
-```
-init.lua
-lua/config/   -- defaults + user overrides
-lua/adapters/ -- swappable abstractions (ai, completion, picker, git)
-lua/features/ -- actual setup (ai, lsp, completion, ui, ...)
-lua/plugins/  -- lazy.nvim specs
-lua/keymaps/
-lua/theme/
-scripts/nvim-ai
-```
+| Path | Contents |
+| --- | --- |
+| `init.lua` | Load order |
+| `lua/config/options.lua` | Options and autocommands |
+| `lua/config/keymaps.lua` | All keymaps |
+| `lua/config/plugins.lua` | Plugins (lazy.nvim) |
+| `lua/config/lsp.lua` | Diagnostics, language servers, completion |
+| `lsp/` | basedpyright, ruff and clangd settings |
+| `lua/config/statusline.lua` | Statusline |
+| `lua/config/notes.lua` | Notes viewer and key search |
+| `lua/config/terminal.lua` | Floating terminal |
+| `lua/config/notify.lua` | Toast notifications |
+| `lua/config/dashboard.lua` | Start screen driver |
+| `lua/config/interstellar.lua` | Start-screen renderer (background, colour, output) |
+| `lua/config/interstellar_scenes.lua` | Black hole and quasar scenes |
+| `lua/config/interstellar_ship.lua` | Endurance renderer |
+| `colors/personal.lua`, `lua/theme/palette.lua` | Colour scheme |
+| `tmux/nvim.conf` | tmux settings for use with Neovim |
+
+## Plugins
+
+lazy.nvim, nvim-treesitter, fzf-lua, nvim-tree, gitsigns, conform, nvim-autopairs, which-key.

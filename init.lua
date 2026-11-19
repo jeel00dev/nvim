@@ -1,20 +1,20 @@
--- ╔══════════════════════════════════════════════════════════════════════╗
--- ║  init.lua — Neovim Configuration Entry Point                        ║
--- ║                                                                      ║
--- ║  This file does exactly three things:                                ║
--- ║  1. Set leader keys (must happen before any plugins load)            ║
--- ║  2. Register the custom health check module                          ║
--- ║  3. Bootstrap the core module (options → keymaps → lazy)             ║
--- ║                                                                      ║
--- ║  All logic lives in lua/ — this file stays minimal.                  ║
--- ╚══════════════════════════════════════════════════════════════════════╝
+if vim.fn.has("nvim-0.11") == 0 then
+   error("This configuration needs Neovim 0.11 or newer.")
+end
 
--- 1. Leader keys — MUST be set before loading plugins
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+-- No remote plugins: skip provider detection (python3 alone costs ~90 ms per Python file).
+for _, provider in ipairs({ "python3", "node", "perl", "ruby" }) do
+   vim.g["loaded_" .. provider .. "_provider"] = 0
+end
 
--- 2. Register health check module
-vim.g.health = { user = "utils.health" }
-
--- 3. Bootstrap everything
-require("core").setup()
+require("config.options")
+require("config.notify")
+vim.cmd.colorscheme("personal")
+require("config.plugins")
+require("config.lsp")
+require("config.keymaps")
+require("config.dashboard").setup()
